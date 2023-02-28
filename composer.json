@@ -1,0 +1,17 @@
+{
+    "name": "victor/estoque",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Victor\\Estoque\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cantino",
+            "email": "victor.cantino@gmail.com"
+        }
+    ],
+    "require": {
+    }
+}
