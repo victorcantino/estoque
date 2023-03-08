@@ -31,9 +31,8 @@ class RepositorioCorPdo implements RepositorioCor
     }
     private function inserir(Cor &$cor): bool
     {
-        $inserir = $this->conexao->prepare('INSERT INTO cores (nome, cmyk) VALUES (:nome, :cmyk);');
+        $inserir = $this->conexao->prepare('INSERT INTO cores (nome) VALUES (:nome);');
         $inserir->bindValue(':nome', $cor->nome(), PDO::PARAM_STR);
-        $inserir->bindValue(':cmyk', $cor->cmyk(), PDO::PARAM_STR);
         $sucesso = $inserir->execute();
         if ($sucesso) {
             $cor->defineId($this->conexao->lastInsertId());
@@ -42,9 +41,8 @@ class RepositorioCorPdo implements RepositorioCor
     }
     private function atualizar(Cor $cor): bool
     {
-        $atualizar = $this->conexao->prepare('UPDATE cores SET nome = :nome , cmyk = :cmyk WHERE id = :id;');
+        $atualizar = $this->conexao->prepare('UPDATE cores SET nome = :nome WHERE id = :id;');
         $atualizar->bindValue(':nome', $cor->nome(), PDO::PARAM_STR);
-        $atualizar->bindValue(':cmyk', $cor->cmyk(), PDO::PARAM_STR);
         $atualizar->bindValue(':id', $cor->id(), PDO::PARAM_INT);
         return $atualizar->execute();
     }
