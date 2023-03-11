@@ -2,29 +2,72 @@
 
 namespace Victor\Estoque\Dominio\Entidades;
 
-use Victor\Estoque\Dominio\Entidades\Cor;
+use Constantes;
+use Decimal\Decimal;
 
-class Produto
+class Produto extends Status
 {
+    private ?int $id;
     private string $nome;
-    private ?float $largura;
-    private ?float  $comprimento;
-    private ?float $volume;
-    private ?float $peso;
-    private ?Cor $cor;
+    private Decimal $saldo;
+    private Estoque $estoque;
+    private string $status;
 
-    public function __construct(string $nome, ?float $largura, ?float $comprimento, ?float $volume, ?float $peso, ?Cor $cor)
+    public function __construct(?int $id, string $nome, Decimal $saldo, Estoque $estoque)
     {
+        $this->id = $id;
         $this->nome = $nome;
-        $this->largura = $largura;
-        $this->comprimento = $comprimento;
-        $this->volume = $volume;
-        $this->peso = $peso;
-        $this->cor = $cor;
+        $this->saldo = $saldo;
+        $this->estoque = $estoque;
+        $this->status = Constantes::ATIVADO;
     }
 
-    public function recuperaNome()
+    public function nome(): string
     {
         return $this->nome;
+    }
+
+    public function atualizaNome(string $nome): self
+    {
+        $this->nome = $nome;
+        return $this;
+    }
+
+    public function saldo(): Decimal
+    {
+        return $this->saldo;
+    }
+
+    public function atualizaSaldo(Decimal $saldo): self
+    {
+        $this->saldo = $saldo;
+        return $this;
+    }
+
+    public function id(): ?int {
+        return $this->id;
+    }
+
+    public function atualizaId(?int $id): self {
+        $this->id = $id;
+        return $this;
+    }
+
+    public function estoque(): Estoque {
+        return $this->estoque;
+    }
+
+    public function status(): string {
+        return $this->status;
+    }
+
+    public function ativa(): self {
+        $this->status = Constantes::ATIVADO;
+        return $this;
+    }
+
+    public function desativa(): self {
+        $this->status = Constantes::DESATIVADO;
+        return $this;
     }
 }

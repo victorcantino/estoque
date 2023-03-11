@@ -16,14 +16,7 @@ class CorTest extends TestCase
         DROP TABLE IF EXISTS cores;
         CREATE TABLE cores (
             id INTEGER PRIMARY KEY, 
-            nome TEXT, 
-            ciano REAL, 
-            magenta REAL, 
-            amarelo REAL, 
-            preto REAL, 
-            vermelho INTEGER, 
-            verde INTEGER,
-            azul INTEGER
+            nome TEXT 
         ); 
         CRIARTABELA;
 
@@ -43,7 +36,7 @@ class CorTest extends TestCase
     }
     public function testRemover()
     {
-        $cor = new Cor(1, 'Preto');
+        $cor = new Cor(1, '');
         $repo = new RepositorioCorPdo(CriadorDeConexao::criarConexao());
         $this->assertEquals(TRUE, $repo->remover($cor));
     }
