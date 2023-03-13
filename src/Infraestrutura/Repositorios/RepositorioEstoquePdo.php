@@ -2,12 +2,10 @@
 
 namespace Victor\Estoque\Infraestrutura\Repositorios;
 
-use Constantes;
 use PDO;
+use Victor\Estoque\Dominio\Constantes;
 use Victor\Estoque\Dominio\Entidades\Estoque;
-use Victor\Estoque\Dominio\Entidades\Status;
-use Victor\Produto\Dominio\Repositorios\InterfaceStatus;
-use Victor\Produto\Dominio\Repositorios\RepositorioEstoque;
+use Victor\Estoque\Dominio\Repositorios\RepositorioEstoque;
 
 class RepositorioEstoquePdo implements RepositorioEstoque
 {
@@ -18,51 +16,55 @@ class RepositorioEstoquePdo implements RepositorioEstoque
         $this->conexao = $conexao;
     }
 
-    public function estoques(): array
+    public function todos(): array
     {
-        return $this->conexao->query('SELECT * FROM estoques;')->fetchAll();
+        $sql = 'SELECT id, nome, status FROM estoques;';
+        return $this->mapear($this->conexao->query($sql)->fetchAll());
     }
 
-    public function salva(Estoque $estoque): bool
+    private function mapear(array $estoques): ?array
     {
-        if ($estoque->id() === null) {
+        return array_map(function (array $dados) {
+            return new Estoque(...$dados);
+        }, $estoques);
+    }
+
+    public function salva(Estoque &$estoque): bool
+    {
+        if ($estoque->getId() === null) {
             return $this->novo($estoque);
         }
-        return $this->atualizaNome($estoque);
+        return $this->atualiza($estoque);
     }
 
-    private function atualizaNome(Estoque $estoque): bool
+    private function novo(Estoque &$estoque): bool
     {
-        $atualizar = $this->conexao->prepare('UPDATE estoques SET nome = :nome WHERE id = :id;');
-        $atualizar->bindValue(':id', $estoque->id(), PDO::PARAM_INT);
-        $atualizar->bindValue(':nome', $estoque->nome(), PDO::PARAM_STR);
-        return $atualizar->execute();
-    }
-
-    private function novo(Estoque $estoque): bool
-    {
-        $inserir = $this->conexao->prepare('INSERT INTO estoques (nome) VALUES (:nome);');
-        $inserir->bindValue(':nome', $estoque->nome(), PDO::PARAM_STR);
+        $sql = 'INSERT INTO estoques (nome, status, criadoEm) VALUES (:nome, :status, :criadoEm);';
+        $inserir = $this->conexao->prepare($sql);
+        $inserir->bindValue(':nome', $estoque->getNome());
+        $inserir->bindValue(':status', $estoque->getStatus());
+        $inserir->bindValue(':criadoEm', Constantes::agora());
         $sucesso = $inserir->execute();
         if ($sucesso) {
-            $estoque->atualizaId($this->conexao->lastInsertId());
+            $estoque->setId($this->conexao->lastInsertId());
         }
         return $sucesso;
     }
 
-    // public function ativa(Estoque $objeto): bool
-    // {
-    //     $update = $this->conexao->prepare('UPDATE estoques SET status = :status WHERE id = :id;');
-    //     $update->bindValue(':id', $objeto->id(), PDO::PARAM_INT);
-    //     $update->bindValue(':status', Constantes::ATIVADO, PDO::PARAM_STR);
-    //     return $update->execute();
-    // }
-
-    // public function desativa(Estoque $estoque): bool
-    // {
-    //     $update = $this->conexao->prepare('UPDATE estoques SET status = :status WHERE id = :id;');
-    //     $update->bindValue(':id', $estoque->id(), PDO::PARAM_INT);
-    //     $update->bindValue(':status', Constantes::DESATIVADO, PDO::PARAM_STR);
-    //     return $update->execute();
-    // }
+    private function atualiza(Estoque $estoque): bool
+    {
+        $sql = <<<ATUALIZA
+        UPDATE estoques SET 
+            nome = :nome, 
+            status = :status, 
+            atualizadoEm = :atualizadoEm 
+        WHERE id = :id;
+        ATUALIZA;
+        $atualizar = $this->conexao->prepare($sql);
+        $atualizar->bindValue(':id', $estoque->getId(), PDO::PARAM_INT);
+        $atualizar->bindValue(':nome', $estoque->getNome());
+        $atualizar->bindValue(':status', $estoque->getStatus());
+        $atualizar->bindValue(':atualizadoEm', Constantes::agora());
+        return $atualizar->execute();
+    }
 }

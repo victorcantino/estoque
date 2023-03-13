@@ -2,72 +2,39 @@
 
 namespace Victor\Estoque\Dominio\Entidades;
 
-use Constantes;
 use Decimal\Decimal;
+use Victor\Estoque\Dominio\Entidades\Base;
 
-class Produto extends Status
+class Produto extends Base
 {
-    private ?int $id;
-    private string $nome;
+    private int $estoque;
     private Decimal $saldo;
-    private Estoque $estoque;
-    private string $status;
 
-    public function __construct(?int $id, string $nome, Decimal $saldo, Estoque $estoque)
+    public function __construct(?int $id, string $nome, string $status, int $estoque, Decimal $saldo)
     {
-        $this->id = $id;
-        $this->nome = $nome;
-        $this->saldo = $saldo;
+        parent::__construct($id, $nome, $status);
         $this->estoque = $estoque;
-        $this->status = Constantes::ATIVADO;
+        $this->saldo = $saldo;
     }
-
-    public function nome(): string
-    {
-        return $this->nome;
-    }
-
-    public function atualizaNome(string $nome): self
-    {
-        $this->nome = $nome;
-        return $this;
-    }
-
-    public function saldo(): Decimal
+    public function getSaldo(): Decimal
     {
         return $this->saldo;
     }
 
-    public function atualizaSaldo(Decimal $saldo): self
+    public function setSaldo(Decimal $saldo): self
     {
-        $this->saldo = $saldo;
+        $this->saldo = $saldo->abs();
         return $this;
     }
 
-    public function id(): ?int {
-        return $this->id;
-    }
-
-    public function atualizaId(?int $id): self {
-        $this->id = $id;
-        return $this;
-    }
-
-    public function estoque(): Estoque {
+    public function getEstoque(): int
+    {
         return $this->estoque;
     }
 
-    public function status(): string {
-        return $this->status;
-    }
-
-    public function ativa(): self {
-        $this->status = Constantes::ATIVADO;
-        return $this;
-    }
-
-    public function desativa(): self {
-        $this->status = Constantes::DESATIVADO;
+    public function setEstoque(int $estoque): self
+    {
+        $this->estoque = $estoque;
         return $this;
     }
 }

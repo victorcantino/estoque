@@ -2,14 +2,12 @@
 
 namespace Victor\Estoque\Infraestrutura\Repositorios;
 
-use Constantes;
 use PDO;
-use Decimal\Decimal;
-use RuntimeException;
+use Victor\Estoque\Dominio\Constantes;
 use Victor\Estoque\Dominio\Entidades\Produto;
-use Victor\Produto\Dominio\Repositorios\RepositorioProduto;
+use Victor\Estoque\Dominio\Repositorios\RepositorioProduto;
 
-class RepositorioEstoquePdo implements RepositorioProduto
+class RepositorioProdutoPdo implements RepositorioProduto
 {
     private PDO $conexao;
 
@@ -18,81 +16,63 @@ class RepositorioEstoquePdo implements RepositorioProduto
         $this->conexao = $conexao;
     }
 
-    public function produtos(): array
+    public function todos(): array
     {
-        return $this->conexao->query('SELECT * FROM produtos;')->fetchAll();
+        $sql = 'SELECT id, nome, status, id_estoque, saldo FROM produtos;';
+        return $this->mapear($this->conexao->query($sql)->fetchAll());
     }
 
-    public function salva(Produto $produto): bool
+    private function mapear(array $produtos): array
     {
-        if ($produto->id() === null) {
+        return array_map(function (array $dados) {
+            return new Produto(...$dados);
+        }, $produtos);
+    }
+
+    public function salva(Produto &$produto): bool
+    {
+        if ($produto->getId() === null) {
             return $this->novo($produto);
         }
-        return $this->atualizaNome($produto);
+        return $this->atualiza($produto);
     }
 
-    private function novo(Produto $produto)
+    private function novo(Produto &$produto)
     {
-        $update = $this->conexao->prepare('INSERT INTO produtos (nome, id_estoque, saldo) VALUES (:nome, :id_estoque, :saldo);');
-        $update->bindValue(':id', $produto->id(), PDO::PARAM_INT);
-        $update->bindValue(':id_estoque', $produto->estoque()->id(), PDO::PARAM_INT);
-        $update->bindValue(':nome', $produto->nome(), PDO::PARAM_STR);
-        $update->bindValue(':saldo', $produto->saldo(), PDO::PARAM_STR);
-        $update->bindValue(':status', Constantes::ATIVADO, PDO::PARAM_STR);
-        return $update->execute();
-    }
-
-    private function atualizaNome(Produto $produto): bool
-    {
-        $update = $this->conexao->prepare('UPDATE produtos SET nome = :nome WHERE id = :id;');
-        $update->bindValue(':id', $produto->id(), PDO::PARAM_INT);
-        $update->bindValue(':nome', $produto->nome(), PDO::PARAM_STR);
-        return $update->execute();
-    }
-
-    public function ativa(Produto $produto): bool
-    {
-        $update = $this->conexao->prepare('UPDATE produtos SET status = :nome WHERE id = :id;');
-        $update->bindValue(':id', $produto->id(), PDO::PARAM_INT);
-        $update->bindValue(':status', Constantes::ATIVADO, PDO::PARAM_STR);
-        return $update->execute();
-    }
-
-    public function desativa(Produto $produto): bool
-    {
-        $update = $this->conexao->prepare('UPDATE produtos SET status = :nome WHERE id = :id;');
-        $update->bindValue(':id', $produto->id(), PDO::PARAM_INT);
-        $update->bindValue(':status', Constantes::DESATIVADO, PDO::PARAM_STR);
-        return $update->execute();
-    }
-
-    public function entrada(Produto $produto, Decimal $quantidade): bool
-    {
-        if ($quantidade <= 0) {
-            throw new RuntimeException('A quantidade deve ser um número positivo');
+        $sql = <<<INSERIR
+        INSERT INTO produtos (id_estoque, nome, saldo, status, criadoEm) 
+        VALUES (:id_estoque, :nome, :saldo, :status, :criadoEm);
+        INSERIR;
+        $inserir = $this->conexao->prepare($sql);
+        $inserir->bindValue(':id_estoque', $produto->getEstoque(), PDO::PARAM_INT);
+        $inserir->bindValue(':nome', $produto->getNome());
+        $inserir->bindValue(':saldo', $produto->getSaldo());
+        $inserir->bindValue(':status', $produto->getStatus());
+        $inserir->bindValue(':criadoEm', Constantes::agora());
+        $sucesso = $inserir->execute();
+        if ($sucesso) {
+            $produto->setId($this->conexao->lastInsertId());
         }
-        $update = $this->conexao->prepare('UPDATE produtos SET saldo = :saldo WHERE id = :id;');
-        $update->bindValue(':saldo', $produto->saldo() + $quantidade);
-        return $update->execute();
+        return $sucesso;
     }
 
-    public function saida(Produto $produto, Decimal $quantidade): bool
+    private function atualiza(Produto $produto): bool
     {
-        if ($quantidade >= 0) {
-            throw new RuntimeException('A quantidade deve ser um número negativo');
-        }
-        if ($produto->saldo() - $quantidade < 0) {
-            throw new RuntimeException('Saldo insuficiente');
-        }
-        $update = $this->conexao->prepare('UPDATE produtos SET saldo = :saldo WHERE id = :id;');
-        $update->bindValue(':saldo', $produto->saldo() - $quantidade);
-        return $update->execute();
-    }
+        $sql = <<<ATUALIZA
+        UPDATE produtos SET 
+            nome = :nome,
+            saldo = :saldo, 
+            status = :status, 
+            atualizadoEm = :atualizadoEm 
+        WHERE id = :id;
+        ATUALIZA;
 
-    public function balanco(Produto $produto, Decimal $quantidade): bool
-    {
-        $update = $this->conexao->prepare('UPDATE produtos SET saldo = :saldo WHERE id = :id;');
-        $update->bindValue(':saldo', $produto->saldo() + $quantidade);
+        $update = $this->conexao->prepare($sql);
+        $update->bindValue(':id', $produto->getId(), PDO::PARAM_INT);
+        $update->bindValue(':nome', $produto->getNome());
+        $update->bindValue(':saldo', $produto->getSaldo());
+        $update->bindValue(':status', $produto->getStatus());
+        $update->bindValue(':atualizadoEm', Constantes::agora());
         return $update->execute();
     }
 }

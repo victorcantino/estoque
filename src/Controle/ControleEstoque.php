@@ -2,52 +2,22 @@
 
 namespace Victor\Estoque\Controle;
 
-use Victor\Estoque\Modelo\Item;
+use PDO;
+use Victor\Estoque\Dominio\Entidades\Estoque;
+use Victor\Estoque\Dominio\Repositorios\RepositorioEstoque;
 
 class ControleEstoque
 {
-    public array $itens = [];
+    private PDO $conexao;
 
-    public function entrada(Item $item): void
+    public function __construct(PDO $conexao)
     {
-        if (!$this->itemExiste($item)) {
-            $this->itens[$item->recuperaNome()] = 0; // cria o item com o estoque zerado
-        }
-        $this->itens[$item->recuperaNome()] += $item->recuperaQuantidade(); // adiciona a quantidade
+        $this->conexao = $conexao;
     }
 
-    public function saida(Item $item): void
+    public function salva(Estoque $estoque)
     {
-        if (!$this->itemExiste($item)) {
-            return;
-        }
-        if (!$this->temSaldo($item)) {
-            return;
-        }
-        $this->itens[$item->recuperaNome()] -= $item->recuperaQuantidade();
-    }
-
-    public function recuperaSaldo(Item $item): float
-    {
-        if ($this->itemExiste($item)) {
-            return $this->itens[$item->recuperaNome()];
-        }
-        return 0;
-    }
-
-    private function itemExiste(Item $item): bool
-    {
-        if (key_exists($item->recuperaNome(), $this->itens)) {
-            return true;
-        }
-        return false;
-    }
-
-    private function temSaldo(Item $item): bool
-    {
-        if ($this->recuperaSaldo($item) > $item->recuperaQuantidade()) {
-            return true;
-        }
-        return false;
+        $repo = new RepositorioEstoque($this->conexao);
+        $repo->salva($estoque);
     }
 }
