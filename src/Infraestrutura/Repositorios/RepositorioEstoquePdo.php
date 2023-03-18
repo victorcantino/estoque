@@ -9,17 +9,23 @@ use Victor\Estoque\Dominio\Repositorios\RepositorioEstoque;
 
 class RepositorioEstoquePdo implements RepositorioEstoque
 {
-    private PDO $conexao;
-
-    public function __construct(PDO $conexao)
-    {
-        $this->conexao = $conexao;
+    public function __construct(
+        private PDO &$conexao
+    ) {
     }
 
     public function todos(): array
     {
         $sql = 'SELECT id, nome, status FROM estoques;';
         return $this->mapear($this->conexao->query($sql)->fetchAll());
+    }
+
+    public function filtrar(Estoque $estoque): array
+    {
+        $sql = 'SELECT id, nome, status FROM estoques WHERE nome = :nome;';
+        $filtrar = $this->conexao->query($sql);
+        $filtrar->bindValue(':nome', $estoque->getNome());
+        return $this->mapear($filtrar->fetchAll());
     }
 
     private function mapear(array $estoques): ?array

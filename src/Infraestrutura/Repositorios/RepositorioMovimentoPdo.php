@@ -9,11 +9,9 @@ use Victor\Estoque\Dominio\Repositorios\RepositorioMovimento;
 
 class RepositorioMovimentoPdo implements RepositorioMovimento
 {
-    private PDO $conexao;
-
-    public function __construct(PDO $conexao)
-    {
-        $this->conexao = $conexao;
+    public function __construct(
+        private PDO &$conexao
+    ) {
     }
 
     public function todos(): array

@@ -36,6 +36,6 @@ $repo_prod->salva($produto);
 $produto->setNome('Fita Branca 20mm');
 $repo_prod->salva($produto);
 
-$movimento = new Movimento(null, 'Entrada', '', $produto->getId(), $produto->getEstoque(), new Decimal(1000));
+$movimento = new Movimento(null, 'Entrada', '', $produto->getEstoque(), $produto->getId(), new Decimal(1000));
 $repo_mov = new RepositorioMovimentoPdo($conexao);
 $repo_mov->salva($movimento);

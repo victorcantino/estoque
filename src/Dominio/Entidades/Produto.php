@@ -7,14 +7,14 @@ use Victor\Estoque\Dominio\Entidades\Base;
 
 class Produto extends Base
 {
-    private int $estoque;
-    private Decimal $saldo;
-
-    public function __construct(?int $id, string $nome, string $status, int $estoque, Decimal $saldo)
-    {
+    public function __construct(
+        private ?int $id,
+        private string $nome,
+        private string $status,
+        private int $estoque,
+        private Decimal $saldo
+    ) {
         parent::__construct($id, $nome, $status);
-        $this->estoque = $estoque;
-        $this->saldo = $saldo;
     }
     public function getSaldo(): Decimal
     {

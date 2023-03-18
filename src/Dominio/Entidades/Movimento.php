@@ -3,21 +3,19 @@
 namespace Victor\Estoque\Dominio\Entidades;
 
 use Decimal\Decimal;
+use Victor\Estoque\Dominio\Entidades\Base;
 
 class Movimento extends Base
 {
-    private int $produto;
-    private int $estoque;
-    private Decimal $quantidade;
-
-    public function __construct(?int $id, string $nome, string $status, int $produto, int $estoque, Decimal $quantidade)
-    {
-        $this->id = $id;
-        $this->nome = $nome;
-        $this->status = $status;
-        $this->produto = $produto;
-        $this->estoque = $estoque;
-        $this->quantidade = $quantidade;
+    public function __construct(
+        private ?int $id,
+        private string $nome,
+        private  string $status,
+        private  int $estoque,
+        private  int $produto,
+        private  Decimal $quantidade
+    ) {
+        parent::__construct($id, $nome, $status);
     }
 
     public function getProduto(): int

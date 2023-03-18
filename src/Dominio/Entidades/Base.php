@@ -2,19 +2,13 @@
 
 namespace Victor\Estoque\Dominio\Entidades;
 
-use DateTimeImmutable;
-
 abstract class Base
 {
-    protected ?int $id;
-    protected string $nome;
-    protected string $status;
-
-    public function __construct(?int $id, string $nome, string $status)
-    {
-        $this->id = $id;
-        $this->nome = $nome;
-        $this->status = $status;
+    public function __construct(
+        private ?int $id,
+        private string $nome,
+        private string $status,
+    ) {
     }
 
     public function getId(): ?int
@@ -39,7 +33,7 @@ abstract class Base
         return $this;
     }
 
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->status;
     }
