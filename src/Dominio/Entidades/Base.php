@@ -2,6 +2,8 @@
 
 namespace Victor\Estoque\Dominio\Entidades;
 
+use Exception;
+
 abstract class Base
 {
     public function __construct(
@@ -9,6 +11,28 @@ abstract class Base
         private string $nome,
         private string $status,
     ) {
+    }
+
+    public function __get($propriedade)
+    {
+        // verifica se o método getPropriedade existe
+        $metodo = 'get' . ucfirst($propriedade);
+        if (method_exists($this, $metodo)) {
+            return $this->$metodo();
+        }
+
+        throw new Exception("Propriedade inválida: {$propriedade}");
+    }
+    public function __set($propriedade, $valor)
+    {
+        // verifica se o método setPropriedade existe
+        $metodo = 'set' . ucfirst($propriedade);
+        if (method_exists($this, $metodo)) {
+            $this->$metodo($valor);
+            return;
+        }
+
+        throw new Exception("Propriedade inválida: {$propriedade}");
     }
 
     public function getId(): ?int

@@ -10,10 +10,10 @@ class Movimento extends Base
     public function __construct(
         private ?int $id,
         private string $nome,
-        private  string $status,
-        private  int $estoque,
-        private  int $produto,
-        private  Decimal $quantidade
+        private string $status,
+        private int $estoque,
+        private int $produto,
+        private Decimal $quantidade
     ) {
         parent::__construct($id, $nome, $status);
     }
