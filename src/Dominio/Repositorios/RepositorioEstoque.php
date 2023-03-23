@@ -10,5 +10,7 @@ interface RepositorioEstoque
     public function todos(): array;
     public function recupera(int $id): ?Estoque;
     public function apaga(int $id): bool;
-    public function filtra(?string $nome, ?string $status): ?array;
+    public function ativa(int $id): bool;
+    public function desativa(int $id): bool;
+    public function filtra(?string $nome, ?string $status, ?string $ordem): ?array;
 }

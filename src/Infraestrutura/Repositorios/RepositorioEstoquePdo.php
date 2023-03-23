@@ -5,9 +5,10 @@ namespace Victor\Estoque\Infraestrutura\Repositorios;
 use PDO;
 use Victor\Estoque\Dominio\Constantes;
 use Victor\Estoque\Dominio\Entidades\Estoque;
+use Victor\Estoque\Dominio\Repositorios\RepositorioBase;
 use Victor\Estoque\Dominio\Repositorios\RepositorioEstoque;
 
-class RepositorioEstoquePdo implements RepositorioEstoque
+class RepositorioEstoquePdo extends RepositorioBase implements RepositorioEstoque
 {
     public function __construct(
         private PDO $conexao
@@ -16,20 +17,8 @@ class RepositorioEstoquePdo implements RepositorioEstoque
 
     public function todos(): array
     {
-        $sql = 'SELECT id, nome, status FROM estoques ORDER BY LOWER(nome) ASC;';
-        return $this->mapearLista($this->conexao->query($sql)->fetchAll());
-    }
-
-    private function mapearLista(array $estoques): ?array
-    {
-        return array_map(function (array $dados) {
-            return new Estoque(...$dados);
-        }, $estoques);
-    }
-
-    private function mapearObjeto(array $estoque): Estoque
-    {
-        return new Estoque(...array_values($estoque));
+        $sql = 'SELECT id, nome, status FROM estoques ORDER BY id ASC;';
+        return $this->mapearLista($this->conexao->query($sql)->fetchAll(), Estoque::class);
     }
 
     public function salva(Estoque &$estoque): bool
@@ -45,7 +34,7 @@ class RepositorioEstoquePdo implements RepositorioEstoque
         $sql = 'INSERT INTO estoques (nome, status, criadoEm) VALUES (:nome, :status, :criadoEm);';
         $inserir = $this->conexao->prepare($sql);
         $inserir->bindValue(':nome', $estoque->getNome());
-        $inserir->bindValue(':status', Constantes::ATIVADO);
+        $inserir->bindValue(':status', $estoque->getStatus());
         $inserir->bindValue(':criadoEm', Constantes::agora());
         $sucesso = $inserir->execute();
         if ($sucesso) {
@@ -71,17 +60,31 @@ class RepositorioEstoquePdo implements RepositorioEstoque
         $recuperar = $this->conexao->query($sql);
         $recuperar->bindValue(':id', $id, PDO::PARAM_INT);
         $recuperar->execute();
-        $estoque = $this->mapearObjeto($recuperar->fetch());
+        $estoque = $this->mapearObjeto($recuperar->fetch(), Estoque::class);
         return $estoque !== false ? $estoque : null;
     }
 
     public function apaga(int $id): bool
     {
-        $sql = <<<APAGA
-        UPDATE estoques
-        SET status = :status, atualizadoEm = :atualizadoEm
-        WHERE id = :id;
-        APAGA;
+        $sql = 'DELETE FROM estoques WHERE id = :id;';
+        $apagar = $this->conexao->prepare($sql);
+        $apagar->bindValue(':id', $id, PDO::PARAM_INT);
+        return $apagar->execute();
+    }
+
+    public function ativa(int $id): bool
+    {
+        $sql = 'UPDATE estoques SET status = :status, atualizadoEm = :atualizadoEm WHERE id = :id;';
+        $apagar = $this->conexao->prepare($sql);
+        $apagar->bindValue(':id', $id);
+        $apagar->bindValue(':status', Constantes::ATIVADO);
+        $apagar->bindValue(':atualizadoEm', Constantes::agora());
+        return $apagar->execute();
+    }
+
+    public function desativa(int $id): bool
+    {
+        $sql = 'UPDATE estoques SET status = :status, atualizadoEm = :atualizadoEm WHERE id = :id;';
         $apagar = $this->conexao->prepare($sql);
         $apagar->bindValue(':id', $id);
         $apagar->bindValue(':status', Constantes::DESATIVADO);
@@ -89,23 +92,27 @@ class RepositorioEstoquePdo implements RepositorioEstoque
         return $apagar->execute();
     }
 
-    public function filtra(?string $nome, ?string $status): ?array
+    public function filtra(?string $nome, ?string $status, ?string $ordem): ?array
     {
-        $sql = "SELECT id, nome, status FROM estoques WHERE 1=1";
+        $sql = 'SELECT id, nome, status FROM estoques WHERE 1=1';
         $params = [];
 
         if ($nome !== null) {
-            $sql .= " AND nome LIKE :nome";
+            $sql .= ' AND nome LIKE :nome';
             $params[':nome'] = '%' . $nome . '%';
         }
 
         if ($status !== null) {
-            $sql .= " AND status LIKE :status";
-            $params[':status'] = '%' . $status . '%';
+            $sql .= ' AND status = :status';
+            $params[':status'] = $status;
+        }
+
+        if ($ordem !== null) {
+            $sql .= ' ORDER BY LOWER(' . $ordem . ')';
         }
 
         $filtrar = $this->conexao->prepare($sql);
         $filtrar->execute($params);
-        return $this->mapearLista($filtrar->fetchAll());
+        return $this->mapearLista($filtrar->fetchAll(), Estoque::class);
     }
 }

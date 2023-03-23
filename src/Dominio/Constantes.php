@@ -1,10 +1,12 @@
 <?php
+
 namespace Victor\Estoque\Dominio;
 
 use DateTimeZone;
 use DateTimeImmutable;
 
-class Constantes {
+class Constantes
+{
     const ATIVADO = 'ATIVADO';
     const DESATIVADO = 'DESATIVADO';
 

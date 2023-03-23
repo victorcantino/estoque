@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS movimentos;
 CREATE TABLE estoques (
     id INTEGER PRIMARY KEY,
     nome TEXT,
-    status TEXT DEFAULT 'ATIVADO',
+    status TEXT,
     criadoEm TEXT,
     atualizadoEm TEXT
 );
@@ -16,7 +16,7 @@ CREATE TABLE produtos (
     id INTEGER PRIMARY KEY,
     id_estoque INTEGER,
     nome TEXT,
-    status TEXT DEFAULT 'ATIVADO',
+    status TEXT,
     saldo REAL,
     criadoEm TEXT,
     atualizadoEm TEXT,
@@ -28,7 +28,7 @@ CREATE TABLE movimentos (
     id_estoque INTEGER,
     id_produto INTEGER,
     nome TEXT,
-    status TEXT DEFAULT 'ATIVADO',
+    status TEXT,
     quantidade REAL,
     criadoEm TEXT,
     atualizadoEm TEXT,
